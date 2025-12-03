@@ -1,0 +1,45 @@
+
+[
+  {
+    "doc_id": "irda_guidelines_summary",
+    "title": "IRDAI Guidelines Summary for Policyholders",
+    "content": "The Insurance Regulatory and Development Authority of India (IRDAI) mandates that all insurers must provide a 'Free Look' period of 15 days for life insurance policies. During this period, a policyholder can cancel the policy if they are not satisfied with the terms and conditions. Insurers are also required to settle death claims within 30 days of receiving all necessary documents.",
+    "source_url": "https://irdai.gov.in/policyholder-protection",
+    "trust_score": 0.95
+  },
+  {
+    "doc_id": "lic_tech_term_plan",
+    "title": "LIC's Tech Term Plan - Product Summary",
+    "content": "LIC's Tech Term Plan is a pure risk premium plan that provides financial protection to the insured's family in case of their unfortunate demise. It is an online-only plan, which typically results in lower premiums. The plan offers coverage up to age 80 and provides options for level sum assured and increasing sum assured.",
+    "source_url": "https://licindia.in/web/guest/tech-term",
+    "trust_score": 0.90
+  },
+  {
+    "doc_id": "hdfc_click2protect_plan",
+    "title": "HDFC Life Click 2 Protect Super - Product Summary",
+    "content": "HDFC Life Click 2 Protect Super is a term insurance plan that offers comprehensive coverage with multiple plan options like Life, Life Plus, and Life Goal. It provides features such as return of premium, waiver of premium on critical illness, and accidental death benefit. The plan allows policyholders to increase their cover at key life stages.",
+    "source_url": "https://www.hdfclife.com/term-insurance-plans/click-2-protect-super",
+    "trust_score": 0.90
+  },
+  {
+    "doc_id": "mutual_funds_basics",
+    "title": "Mutual Funds Investment Basics (ELSS)",
+    "content": "Equity Linked Savings Scheme (ELSS) are a type of mutual fund that primarily invests in the stock market and offer tax benefits under Section 80C of the Income Tax Act. ELSS funds have a lock-in period of 3 years, which is the shortest among all tax-saving investment options. They have the potential to provide higher returns compared to other tax-saving instruments but also carry higher market risk.",
+    "source_url": "https://www.amfiindia.com/investor-corner/knowledge-center/what-are-elss",
+    "trust_score": 0.85
+  },
+  {
+    "doc_id": "ppf_scheme_overview",
+    "title": "Public Provident Fund (PPF) Scheme Overview",
+    "content": "The Public Provident Fund (PPF) is a long-term investment scheme backed by the Government of India. It offers a fixed, tax-free return. The interest rate is set by the government every quarter. The scheme has a maturity period of 15 years, which can be extended in blocks of 5 years. Contributions to PPF are eligible for tax deductions under Section 80C.",
+    "source_url": "https://www.indiapost.gov.in/Financial/Pages/Content/post-office-saving-schemes.aspx",
+    "trust_score": 0.98
+  },
+  {
+    "doc_id": "rule_of_thumb_insurance",
+    "title": "General Rule of Thumb for Term Insurance Cover",
+    "content": "A widely accepted rule of thumb for term insurance coverage is to have a sum assured that is at least 10 to 15 times your current annual income. This helps ensure that your family can maintain their lifestyle, cover major expenses like loans, and meet future financial goals like children's education in your absence. This amount can be adjusted based on number of dependents, outstanding liabilities, and existing savings.",
+    "source_url": "https://www.investopedia.com/articles/insurance/08/life-insurance-how-much.asp",
+    "trust_score": 0.70
+  }
+]
