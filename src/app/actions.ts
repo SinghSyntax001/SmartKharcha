@@ -8,6 +8,7 @@ import { getTaxAdvice } from '@/ai/flows/tax-advisor';
 import type { UserProfile, SeedKbDoc } from '@/lib/types';
 import seedKb from '../../frontend/seed_data/seed_kb.json';
 import { chatWithFinancialAdvisor } from '@/ai/flows/chat-with-financial-advisor';
+import { analyzeDocument as analyzeDocumentFlow } from '@/ai/flows/analyze-document';
 
 const allDocs: SeedKbDoc[] = seedKb;
 
@@ -209,6 +210,19 @@ export async function calculateTax(values: z.infer<typeof CalculatorSchema>) {
         taxNewRegime: Math.round(taxNewRegime),
         recommendation: recommendation,
       } 
+    };
+  }
+}
+
+export async function analyzeDocument(documentImage: string) {
+  try {
+    const response = await analyzeDocumentFlow({ documentImage });
+    return { success: true, data: response };
+  } catch (error: any) {
+    console.error("Error in analyzeDocument:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to analyze document."
     };
   }
 }
