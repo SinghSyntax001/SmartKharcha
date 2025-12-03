@@ -1,7 +1,6 @@
 import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/google-genai';
 
-// Genkit is initialized without model plugins.
-// API calls will be made directly using the Groq SDK.
 export const ai = genkit({
-  plugins: [],
+  plugins: [googleAI()],
 });

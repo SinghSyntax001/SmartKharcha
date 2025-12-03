@@ -2,9 +2,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import Groq from 'groq-sdk';
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const ChatInputSchema = z.object({
   question: z.string().describe("The user's question about financial planning."),
@@ -16,9 +13,9 @@ const ChatInputSchema = z.object({
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const AiOutputSchema = z.object({
-    reply: z.string(),
-    confidence: z.number(),
-    source_indices: z.array(z.number()),
+    reply: z.string().describe("The AI chatbot's response to the user's question."),
+    confidence: z.number().min(0).max(1).describe("The confidence score of the AI's response (0.0-1.0)."),
+    source_indices: z.array(z.number()).describe('A list of all source indices from the retrieved documents that were used in the response.'),
 });
 
 const ChatOutputSchema = z.object({
@@ -46,7 +43,7 @@ const chatWithFinancialAdvisorFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    
+    const model = ai.model('gemini-1.5-flash-latest');
     const documentsContext = input.retrieved_documents.map((doc, index) => `[${index}] Title: ${doc.title}\nContent: ${doc.content}`).join('\n\n');
 
     const systemPrompt = `You are a conservative, professional Indian financial advisor. Your primary directive is to use ONLY the provided facts and documents to answer user questions. Do NOT invent policy wording, financial figures, or legal sections.
@@ -69,27 +66,22 @@ ${input.computed_facts_json}
 Retrieved documents from knowledge base:
 ${documentsContext}
 
-Based *only* on the documents and facts above, provide:
-1. A detailed, multi-paragraph response answering the user's question with citations.
-2. A confidence score (a number between 0.0 and 1.0) based on how well the documents support your answer.
-3. A list of all source indices used in your response (e.g., [0, 2]).
-`;
+Based *only* on the documents and facts above, generate a JSON response with three keys: 'reply', 'confidence', and 'source_indices'.`;
 
-    const completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Question: ${input.question}` }
-        ],
-        response_format: { type: 'json_object' },
+    const { output } = await ai.generate({
+        model: model,
+        prompt: `${systemPrompt}\n\nUser Question: ${input.question}`,
+        config: {
+          response: {
+            format: 'json',
+            schema: AiOutputSchema
+          }
+        }
     });
 
-    const rawOutput = completion.choices[0]?.message?.content;
-    if (!rawOutput) {
+    if (!output) {
         throw new Error("AI failed to generate a response.");
     }
-    
-    const output = AiOutputSchema.parse(JSON.parse(rawOutput));
 
     const sources = output.source_indices
         .map(index => input.retrieved_documents[index])

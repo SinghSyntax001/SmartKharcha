@@ -2,9 +2,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import Groq from 'groq-sdk';
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const TaxAdvisorInputSchema = z.object({
   income: z.number().describe('Gross annual income.'),
@@ -30,6 +27,7 @@ const taxAdvisorFlow = ai.defineFlow(
     outputSchema: TaxAdvisorOutputSchema,
   },
   async (input) => {
+    const model = ai.model('gemini-1.5-flash-latest');
     const prompt = `You are a helpful tax assistant. Based on the following tax calculation, provide a concise, one-sentence recommendation about which regime is more beneficial and by how much.
 
 - Gross Income: ${input.income}
@@ -39,20 +37,21 @@ const taxAdvisorFlow = ai.defineFlow(
 
 Return a JSON object with a single key "recommendation".`;
 
-    const completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: [
-            { role: "user", content: prompt }
-        ],
-        response_format: { type: 'json_object' },
+    const { output } = await ai.generate({
+      model: model,
+      prompt: prompt,
+      config: {
+        response: {
+          format: 'json',
+          schema: TaxAdvisorOutputSchema
+        }
+      }
     });
     
-    const rawOutput = completion.choices[0]?.message?.content;
-    if (!rawOutput) {
+    if (!output) {
       throw new Error('AI failed to generate a response.');
     }
 
-    const output = TaxAdvisorOutputSchema.parse(JSON.parse(rawOutput));
     return output;
   }
 );

@@ -2,9 +2,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import Groq from 'groq-sdk';
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const AnalyzeDocumentInputSchema = z.object({
   documentImage: z
@@ -35,6 +32,8 @@ const analyzeDocumentFlow = ai.defineFlow(
     outputSchema: AnalyzeDocumentOutputSchema,
   },
   async (input) => {
+    const model = ai.model('gemini-1.5-flash-latest');
+    
     const prompt = `You are an expert financial document analyst. Your task is to meticulously analyze the provided image of a document and extract structured information.
 
 Based on the image, identify the document type, extract all relevant key-value pairs into a valid JSON object, and provide a concise summary.
@@ -45,31 +44,24 @@ Based on the image, identify the document type, extract all relevant key-value p
 
 Return the information in the specified JSON format, ensuring the extractedData field is a well-formed JSON object.`;
 
-    const completion = await groq.chat.completions.create({
-        model: "llama-3.1-8b-instant",
-        messages: [
-            {
-                role: "user",
-                content: [
-                    { type: "text", text: prompt },
-                    { 
-                        type: "image_url", 
-                        image_url: {
-                            "url": input.documentImage
-                        }
-                    },
-                ]
-            }
-        ],
-        response_format: { type: 'json_object' },
+    const { output } = await ai.generate({
+      model: model,
+      prompt: [
+        { text: prompt },
+        { media: { url: input.documentImage } }
+      ],
+      config: {
+        response: {
+          format: 'json',
+          schema: AnalyzeDocumentOutputSchema
+        }
+      }
     });
 
-    const rawOutput = completion.choices[0]?.message?.content;
-    if (!rawOutput) {
+    if (!output) {
       throw new Error('AI failed to generate a response.');
     }
-
-    const output = AnalyzeDocumentOutputSchema.parse(JSON.parse(rawOutput));
+    
     return output;
   }
 );
