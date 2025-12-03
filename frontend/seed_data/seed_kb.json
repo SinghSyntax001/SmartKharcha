@@ -3,7 +3,7 @@
   {
     "doc_id": "irda_guidelines_summary",
     "title": "IRDAI Guidelines Summary for Policyholders",
-    "content": "The Insurance Regulatory and Development Authority of India (IRDAI) mandates that all insurers must provide a 'Free Look' period of 15 days for life insurance policies. During this period, a policyholder can cancel the policy if they are not satisfied with the terms and conditions. Insurers are also required to settle death claims within 30 days of receiving all necessary documents.",
+    "content": "The Insurance Regulatory and Development Authority of India (IRDAI) mandates that all insurers must provide a 'Free Look' period of 15 days for life insurance policies (30 days for policies sold online). During this period, a policyholder can cancel the policy if they are not satisfied with the terms and conditions, and receive a refund of the premium paid, minus some minor charges.",
     "source_url": "https://irdai.gov.in/policyholder-protection",
     "trust_score": 0.95
   },
@@ -22,24 +22,38 @@
     "trust_score": 0.90
   },
   {
-    "doc_id": "mutual_funds_basics",
-    "title": "Mutual Funds Investment Basics (ELSS)",
-    "content": "Equity Linked Savings Scheme (ELSS) are a type of mutual fund that primarily invests in the stock market and offer tax benefits under Section 80C of the Income Tax Act. ELSS funds have a lock-in period of 3 years, which is the shortest among all tax-saving investment options. They have the potential to provide higher returns compared to other tax-saving instruments but also carry higher market risk.",
+    "doc_id": "mutual_funds_elss",
+    "title": "Equity Linked Savings Scheme (ELSS)",
+    "content": "Equity Linked Savings Scheme (ELSS) are a type of mutual fund that primarily invests in the stock market and offer tax benefits under Section 80C of the Income Tax Act. ELSS funds have a lock-in period of 3 years, which is the shortest among all tax-saving investment options under 80C. They have the potential to provide higher returns compared to other tax-saving instruments but also carry higher market risk.",
     "source_url": "https://www.amfiindia.com/investor-corner/knowledge-center/what-are-elss",
     "trust_score": 0.85
   },
   {
     "doc_id": "ppf_scheme_overview",
     "title": "Public Provident Fund (PPF) Scheme Overview",
-    "content": "The Public Provident Fund (PPF) is a long-term investment scheme backed by the Government of India. It offers a fixed, tax-free return. The interest rate is set by the government every quarter. The scheme has a maturity period of 15 years, which can be extended in blocks of 5 years. Contributions to PPF are eligible for tax deductions under Section 80C.",
+    "content": "The Public Provident Fund (PPF) is a long-term investment scheme backed by the Government of India. It offers a guaranteed, tax-free return. The interest rate is set by the government every quarter. The scheme has a maturity period of 15 years, which can be extended in blocks of 5 years. Contributions to PPF up to ₹1.5 lakh per year are eligible for tax deductions under Section 80C.",
     "source_url": "https://www.indiapost.gov.in/Financial/Pages/Content/post-office-saving-schemes.aspx",
     "trust_score": 0.98
   },
   {
     "doc_id": "rule_of_thumb_insurance",
     "title": "General Rule of Thumb for Term Insurance Cover",
-    "content": "A widely accepted rule of thumb for term insurance coverage is to have a sum assured that is at least 10 to 15 times your current annual income. This helps ensure that your family can maintain their lifestyle, cover major expenses like loans, and meet future financial goals like children's education in your absence. This amount can be adjusted based on number of dependents, outstanding liabilities, and existing savings.",
+    "content": "A widely accepted rule of thumb for term insurance coverage is to have a sum assured that is at least 10 to 15 times your current annual income. This helps ensure that your family can maintain their lifestyle, cover major expenses like loans, and meet future financial goals like children's education in your absence. This amount should be adjusted based on number of dependents, outstanding liabilities, and existing savings.",
     "source_url": "https://www.investopedia.com/articles/insurance/08/life-insurance-how-much.asp",
     "trust_score": 0.70
+  },
+  {
+    "doc_id": "tax_regime_comparison",
+    "title": "Old vs New Tax Regime Comparison",
+    "content": "The Old Tax Regime allows taxpayers to claim numerous deductions and exemptions, such as those under Section 80C (up to ₹1.5 lakh), 80D (health insurance), HRA, and standard deduction (₹50,000). The tax slabs are generally higher. The New Tax Regime offers lower tax rates but forgoes most of the major deductions and exemptions. The new regime is beneficial for those with fewer investments and deductions. A standard deduction of ₹50,000 is available under the new regime for salaried individuals from FY 2023-24 onwards.",
+    "source_url": "https://incometaxindia.gov.in/Pages/tools/115bac-tax-calculator.aspx",
+    "trust_score": 0.99
+  },
+  {
+    "doc_id": "section_80c_deductions",
+    "title": "Section 80C Deductions",
+    "content": "Section 80C of the Income Tax Act allows for tax deductions on a variety of investments and expenses, up to a combined limit of ₹1.5 lakh per financial year. Popular options include: Public Provident Fund (PPF), Equity Linked Savings Scheme (ELSS), Life Insurance Premiums, National Savings Certificate (NSC), 5-year tax-saving Fixed Deposits (FDs), and principal repayment on home loans. These deductions are only available under the Old Tax Regime.",
+    "source_url": "https://incometaxindia.gov.in/pages/acts/income-tax-act.aspx",
+    "trust_score": 0.99
   }
 ]
