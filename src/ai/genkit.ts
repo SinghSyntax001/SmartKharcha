@@ -9,5 +9,5 @@ export const ai = genkit({
       baseUrl: 'https://api.groq.com/openai/v1',
     }),
   ],
-  model: 'googleai/llama-3.1-8b-instant',
+  model: 'llama-3.1-8b-instant',
 });
