@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -14,13 +15,13 @@ import {z} from 'genkit';
 // Define schemas for input and output
 const ChatInputSchema = z.object({
   user_id: z.string().describe('The unique identifier for the user.'),
-  question: z.string().describe('The user's question about financial planning.'),
+  question: z.string().describe("The user's question about financial planning."),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
 const ChatOutputSchema = z.object({
-  reply: z.string().describe('The AI chatbot''s response to the user''s question.'),
-  confidence: z.number().describe('The confidence score of the AI''s response (0.0-1.0).'),
+  reply: z.string().describe("The AI chatbot's response to the user's question."),
+  confidence: z.number().describe("The confidence score of the AI's response (0.0-1.0)."),
   sources: z.array(
     z.object({
       doc_id: z.string().describe('The ID of the document used as a source.'),
