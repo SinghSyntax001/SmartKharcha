@@ -2,7 +2,6 @@
 'use server';
 
 import { z } from 'zod';
-import { handleApiFallback } from '@/ai/flows/handle-api-fallback';
 import { retrieveRelevantFinancialDocuments } from '@/ai/flows/retrieve-relevant-financial-documents';
 import { getTaxAdvice } from '@/ai/flows/tax-advisor';
 import type { UserProfile, SeedKbDoc } from '@/lib/types';
@@ -58,7 +57,7 @@ async function getContextualResponse(question: string, profile: UserProfile, doc
     if (documentContext) {
       computed_facts["Extracted Document Data"] = JSON.parse(documentContext);
     }
-    const computed_facts_json = JSON.stringify(computed_facts);
+    const computed_facts_json = JSON.stringify(computed_facts, null, 2);
 
 
     // 2. Retrieve relevant document headers from the knowledge base
@@ -93,12 +92,12 @@ export async function getAiResponse(question: string, profile: UserProfile, docu
     const { computed_facts_json, retrieved_documents } = await getContextualResponse(question, profile, documentContext);
       
     // 4. Call the main AI flow with all context
-    const response = await handleApiFallback({
-      user_id: profile.user_id,
+    const response = await chatWithFinancialAdvisor({
       question,
       profile,
       computed_facts_json,
       retrieved_documents: retrieved_documents,
+      documentContext,
     });
 
     return { success: true, data: response };
@@ -117,35 +116,7 @@ export async function getAiResponse(question: string, profile: UserProfile, docu
 }
 
 export async function getInsuranceAdvice(question: string, profile: UserProfile) {
-  try {
-    // The simplified flow returns a string directly
-    const responseText = await chatWithFinancialAdvisor({
-        user_id: profile.user_id,
-        question: question
-    });
-    // We wrap it in the expected object structure for the chat interface
-    return { 
-      success: true, 
-      data: { 
-        reply: responseText,
-        confidence: 0.9, // Assign a high confidence as it's a direct response
-        sources: []      // No sources for this simple call
-      } 
-    };
-
-  } catch (error: any) {
-    console.error("Error in getInsuranceAdvice:", error);
-    // Use the full error object for better debugging
-    console.error("Full error:", JSON.stringify(error, null, 2));
-    return { 
-      success: false, 
-      data: { 
-        reply: "I am sorry, the AI service is currently unavailable. Based on your profile and available information, here's a deterministic recommendation: Consider a term insurance plan with coverage of 10x your annual income.",
-        confidence: 0,
-        sources: []
-      } 
-    };
-  }
+    return getAiResponse(question, profile);
 }
 
 const CalculatorSchema = z.object({
