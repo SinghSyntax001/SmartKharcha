@@ -8,7 +8,7 @@ import { DollarSign, Shield, TrendingUp, HandHelping, FileText, Calculator } fro
 import ChatInterface from '@/components/app/chat-interface';
 import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Link from 'next/link';
 
 const featureCards = [
@@ -97,6 +97,9 @@ export default function DashboardPage() {
 
             <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
               <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="sr-only">Create Profile</DialogTitle>
+                  </DialogHeader>
                   <ProfileForm onProfileCreated={handleProfileCreated} />
               </DialogContent>
           </Dialog>

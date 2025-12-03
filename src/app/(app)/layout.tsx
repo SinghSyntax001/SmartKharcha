@@ -6,7 +6,7 @@ import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import type { UserProfile } from '@/lib/types';
 import AppSidebar from '@/components/app/sidebar';
 import ProfileForm from '@/components/app/profile-form';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function AppLayout({
@@ -42,6 +42,9 @@ export default function AppLayout({
         
         <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
             <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="sr-only">Create or Edit Profile</DialogTitle>
+                </DialogHeader>
                 <ProfileForm onProfileCreated={handleProfileCreated} />
             </DialogContent>
         </Dialog>

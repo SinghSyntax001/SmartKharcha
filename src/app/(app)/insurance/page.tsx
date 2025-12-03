@@ -6,7 +6,7 @@ import { UserProfile } from '@/lib/types';
 import ChatInterface from '@/components/app/chat-interface';
 import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getInsuranceAdvice } from '@/app/actions';
 
 export default function InsurancePage() {
@@ -41,6 +41,9 @@ export default function InsurancePage() {
             </div>
              <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
               <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle className="sr-only">Create Profile</DialogTitle>
+                  </DialogHeader>
                   <ProfileForm onProfileCreated={handleProfileCreated} />
               </DialogContent>
           </Dialog>
