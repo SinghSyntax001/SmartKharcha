@@ -5,10 +5,11 @@ import { z } from 'zod';
 import { handleGroqApiFallback } from '@/ai/flows/handle-groq-api-fallback';
 import { retrieveRelevantFinancialDocuments } from '@/ai/flows/retrieve-relevant-financial-documents';
 import { getTaxAdvice } from '@/ai/flows/tax-advisor';
-import type { UserProfile, SeedKbDoc } from '@/lib/types';
+import type { UserProfile, SeedKbDoc, ChatMessage } from '@/lib/types';
 import seedKb from '../../frontend/seed_data/seed_kb.json';
 import { chatWithFinancialAdvisor } from '@/ai/flows/chat-with-financial-advisor';
 import { analyzeDocument as analyzeDocumentFlow } from '@/ai/flows/analyze-document';
+import { User } from 'firebase/auth';
 
 const allDocs: SeedKbDoc[] = seedKb;
 
@@ -225,4 +226,18 @@ export async function analyzeDocument(documentImage: string) {
       error: error.message || "Failed to analyze document."
     };
   }
+}
+
+
+export async function saveChatMessage(userId: string, message: ChatMessage) {
+  console.log(`Mock saveChatMessage: userId=${userId}, messageId=${message.id}`);
+  // In a real implementation, this would save to Firestore
+  return { success: true };
+}
+
+export async function getChatHistory(userId: string): Promise<{ success: boolean, data: ChatMessage[] }> {
+    console.log(`Mock getChatHistory: userId=${userId}`);
+    // In a real implementation, this would fetch from Firestore.
+    // Returning an empty array to simulate no history for now.
+    return { success: true, data: [] };
 }

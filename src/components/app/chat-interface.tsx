@@ -2,9 +2,9 @@
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
-import { Send, Loader2, BarChart, ExternalLink, User, Bot, CircleUserRound, AlertCircle } from 'lucide-react';
+import { Send, Loader2, BarChart, ExternalLink, User as UserIcon, Bot, CircleUserRound, AlertCircle } from 'lucide-react';
 import type { UserProfile, ChatMessage, AiAction } from '@/lib/types';
-import { getAiResponse } from '@/app/actions';
+import { getAiResponse, saveChatMessage, getChatHistory } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,31 +14,49 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AnimatePresence, motion } from 'framer-motion';
+import type { User } from 'firebase/auth';
 
 interface ChatInterfaceProps {
   userProfile: UserProfile | null;
+  user: User | null;
   initialMessage: ChatMessage;
   onNewProfile: () => void;
   aiAction?: AiAction;
 }
 
-export default function ChatInterface({ userProfile, initialMessage, onNewProfile, aiAction = getAiResponse }: ChatInterfaceProps) {
+export default function ChatInterface({ userProfile, user, initialMessage, onNewProfile, aiAction = getAiResponse }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Scroll to bottom when messages change
     if (scrollAreaRef.current) {
         scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Load chat history when user logs in
+    if (user) {
+      startTransition(async () => {
+        const historyResult = await getChatHistory(user.uid);
+        if (historyResult.success && historyResult.data.length > 0) {
+          setMessages([initialMessage, ...historyResult.data]);
+        }
+      });
+    } else {
+      // Reset to initial message when user logs out
+      setMessages([initialMessage]);
+    }
+  }, [user, initialMessage]);
   
-  const isChatDisabled = !userProfile;
+  const isChatDisabled = !userProfile || !user;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isPending || isChatDisabled) return;
+    if (!input.trim() || isPending || !user || !userProfile) return;
 
     const userMessage: ChatMessage = {
       id: `user_${Date.now()}`,
@@ -47,9 +65,10 @@ export default function ChatInterface({ userProfile, initialMessage, onNewProfil
     };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    saveChatMessage(user.uid, userMessage);
+
 
     startTransition(async () => {
-      if (!userProfile) return;
       const result = await aiAction(input, userProfile);
       
       const assistantMessage: ChatMessage = {
@@ -60,6 +79,7 @@ export default function ChatInterface({ userProfile, initialMessage, onNewProfil
         confidence: result.data.confidence,
       };
       setMessages(prev => [...prev, assistantMessage]);
+      saveChatMessage(user.uid, assistantMessage);
     });
   };
 
@@ -126,7 +146,7 @@ export default function ChatInterface({ userProfile, initialMessage, onNewProfil
                 </div>
                 {message.role === 'user' && (
                   <Avatar className="w-8 h-8 border">
-                      <AvatarFallback className="bg-secondary text-secondary-foreground"><User size={18}/></AvatarFallback>
+                      <AvatarFallback className="bg-secondary text-secondary-foreground"><UserIcon size={18}/></AvatarFallback>
                   </Avatar>
                 )}
               </motion.div>
@@ -153,25 +173,36 @@ export default function ChatInterface({ userProfile, initialMessage, onNewProfil
 
       <div className="p-4 border-t relative">
         {isChatDisabled && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
-                <Alert className="max-w-md text-center shadow-lg">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Create a Profile to Start</AlertTitle>
-                    <AlertDescription>
-                        You need to create a profile to use the chat. Your financial data helps us provide personalized advice.
-                    </AlertDescription>
-                    <Button size="sm" className="mt-4" onClick={onNewProfile}>
-                        <CircleUserRound className="mr-2" />
-                        Create Profile
-                    </Button>
-                </Alert>
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 text-center p-4">
+                 {!user && (
+                     <Alert className="max-w-md shadow-lg">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Please Log In</AlertTitle>
+                        <AlertDescription>
+                            You need to be logged in to chat and save your history.
+                        </AlertDescription>
+                    </Alert>
+                 )}
+                 {user && !userProfile && (
+                     <Alert className="max-w-md shadow-lg">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Create a Profile to Start</AlertTitle>
+                        <AlertDescription>
+                            Your financial data helps us provide personalized advice.
+                        </AlertDescription>
+                        <Button size="sm" className="mt-4" onClick={onNewProfile}>
+                            <CircleUserRound className="mr-2" />
+                            Create Profile
+                        </Button>
+                    </Alert>
+                 )}
             </div>
         )}
         <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask a financial question..."
+            placeholder={isChatDisabled ? "Please log in and create a profile to chat." : "Ask a financial question..."}
             className="flex-grow resize-none"
             rows={1}
             onKeyDown={(e) => {

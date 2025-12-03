@@ -8,6 +8,7 @@ import AppSidebar from '@/components/app/sidebar';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useUser, FirebaseProvider, initializeFirebase, FirebaseClientProvider } from '@/firebase';
 
 export default function AppLayout({
   children,
@@ -23,7 +24,6 @@ export default function AppLayout({
     setLoading(false);
   }, []);
 
-
   const handleProfileCreated = (newProfile: UserProfile) => {
     setProfile(newProfile);
     setIsProfileFormOpen(false);
@@ -33,22 +33,43 @@ export default function AppLayout({
     setIsProfileFormOpen(true);
   };
 
+  const handleLogin = () => {
+    // Mock login function
+    console.log("Login initiated");
+  };
+
+  const handleLogout = () => {
+    // Mock logout function
+    console.log("Logout initiated");
+  };
+
+  const { user } = useUser();
+
+
   const LayoutComponent = (
-    <div className="flex h-screen bg-background">
-        <AppSidebar userProfile={profile} onNewProfile={handleNewProfile} />
-        <main className="flex-1 flex flex-col h-screen">
-            {children}
-        </main>
-        
-        <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
-            <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="sr-only">Create or Edit Profile</DialogTitle>
-                </DialogHeader>
-                <ProfileForm onProfileCreated={handleProfileCreated} />
-            </DialogContent>
-        </Dialog>
-    </div>
+     <FirebaseClientProvider>
+        <div className="flex h-screen bg-background">
+            <AppSidebar 
+              userProfile={profile} 
+              onNewProfile={handleNewProfile}
+              user={user} 
+              onLogin={handleLogin} 
+              onLogout={handleLogout} 
+            />
+            <main className="flex-1 flex flex-col h-screen">
+                {children}
+            </main>
+            
+            <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Create or Edit Profile</DialogTitle>
+                    </DialogHeader>
+                    <ProfileForm onProfileCreated={handleProfileCreated} />
+                </DialogContent>
+            </Dialog>
+        </div>
+      </FirebaseClientProvider>
   );
 
   const LoaderComponent = (
