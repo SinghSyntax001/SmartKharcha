@@ -86,7 +86,7 @@ const handleGroqApiFallbackFlow = ai.defineFlow(
       }
       return output;
     } catch (error: any) {
-      console.error('Groq API call failed:', error.message);
+      console.error('AI API call failed. Full error:', JSON.stringify(error, null, 2));
 
       // Deterministic fallback logic
       const reply = "I am sorry, the AI service is currently unavailable. Based on your profile and available information, here's a deterministic recommendation: Consider a term insurance plan with coverage of 10x your annual income.";
