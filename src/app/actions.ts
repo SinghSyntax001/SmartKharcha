@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import { handleGroqApiFallback } from '@/ai/flows/handle-groq-api-fallback';
 import { retrieveRelevantFinancialDocuments } from '@/ai/flows/retrieve-relevant-financial-documents';
+import { getTaxAdvice } from '@/ai/flows/tax-advisor';
 import type { UserProfile, SeedKbDoc } from '@/lib/types';
 import seedKb from '../../frontend/seed_data/seed_kb.json';
 
@@ -91,6 +92,90 @@ export async function getAiResponse(question: string, profile: UserProfile) {
         reply: "Sorry, I encountered an error while processing your request. Please try again later.",
         confidence: 0,
         sources: []
+      } 
+    };
+  }
+}
+
+const CalculatorSchema = z.object({
+  income: z.coerce.number().min(1),
+  deductions: z.coerce.number().min(0).default(0),
+  hra: z.coerce.number().min(0).default(0),
+});
+
+export async function calculateTax(values: z.infer<typeof CalculatorSchema>) {
+  const validated = CalculatorSchema.safeParse(values);
+  if (!validated.success) {
+    return { success: false, data: null };
+  }
+  const { income, deductions, hra } = validated.data;
+  const STANDARD_DEDUCTION = 50000;
+
+  // Old Regime Calculation
+  const taxableIncomeOld = Math.max(0, income - deductions - hra - STANDARD_DEDUCTION);
+  let taxOldRegime = 0;
+  if (taxableIncomeOld > 1000000) {
+    taxOldRegime = 112500 + (taxableIncomeOld - 1000000) * 0.3;
+  } else if (taxableIncomeOld > 500000) {
+    taxOldRegime = 12500 + (taxableIncomeOld - 500000) * 0.2;
+  } else if (taxableIncomeOld > 250000) {
+    taxOldRegime = (taxableIncomeOld - 250000) * 0.05;
+  }
+  // Health and Education Cess
+  taxOldRegime *= 1.04;
+
+  // New Regime Calculation (for FY 2023-24 / AY 2024-25)
+  const taxableIncomeNew = Math.max(0, income - STANDARD_DEDUCTION);
+  let taxNewRegime = 0;
+  if (taxableIncomeNew > 1500000) {
+    taxNewRegime = 150000 + (taxableIncomeNew - 1500000) * 0.3;
+  } else if (taxableIncomeNew > 1200000) {
+    taxNewRegime = 90000 + (taxableIncomeNew - 1200000) * 0.2;
+  } else if (taxableIncomeNew > 900000) {
+    taxNewRegime = 45000 + (taxableIncomeNew - 900000) * 0.15;
+  } else if (taxableIncomeNew > 600000) {
+    taxNewRegime = 15000 + (taxableIncomeNew - 600000) * 0.1;
+  } else if (taxableIncomeNew > 300000) {
+    taxNewRegime = (taxableIncomeNew - 300000) * 0.05;
+  }
+
+  // Rebate under section 87A if taxable income is <= 7,00,000
+  if (taxableIncomeNew <= 700000) {
+    taxNewRegime = 0;
+  } else {
+    // Health and Education Cess
+    taxNewRegime *= 1.04;
+  }
+
+  try {
+    const { recommendation } = await getTaxAdvice({
+      income,
+      deductions: deductions + hra,
+      taxOldRegime: Math.round(taxOldRegime),
+      taxNewRegime: Math.round(taxNewRegime),
+    });
+
+    return {
+      success: true,
+      data: {
+        taxOldRegime: Math.round(taxOldRegime),
+        taxNewRegime: Math.round(taxNewRegime),
+        recommendation,
+      },
+    };
+  } catch (error) {
+     console.error("Error in getTaxAdvice:", error);
+     const saving = Math.round(taxOldRegime - taxNewRegime);
+     let recommendation = `The New Regime seems more beneficial for you, saving you ₹${Math.abs(saving).toLocaleString('en-IN')}.`;
+     if (saving < 0) {
+         recommendation = `The Old Regime seems more beneficial for you, saving you ₹${Math.abs(saving).toLocaleString('en-IN')}.`;
+     }
+     return { 
+      success: true, 
+      data: { 
+        taxOldRegime: Math.round(taxOldRegime),
+        taxNewRegime: Math.round(taxNewRegime),
+        recommendation: recommendation,
       } 
     };
   }
