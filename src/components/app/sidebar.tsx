@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bot, Calculator, FileText, Home, CircleUserRound, Settings } from 'lucide-react';
+import { Bot, Calculator, FileText, Home, CircleUserRound, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
@@ -19,6 +19,7 @@ interface SidebarProps {
 
 const navItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
+    { href: '/insurance', icon: Shield, label: 'Insurance Advisor' },
     { href: '/tax-chat', icon: Bot, label: 'Tax Chatbot' },
     { href: '/documents', icon: FileText, label: 'Documents' },
     { href: '/calculator', icon: Calculator, label: 'Tax Calculator' },

@@ -4,35 +4,37 @@
 import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import { UserProfile } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { DollarSign, ShieldCheck, TrendingUp, HandHelping } from 'lucide-react';
+import { DollarSign, Shield, TrendingUp, HandHelping, FileText, Calculator } from 'lucide-react';
 import ChatInterface from '@/components/app/chat-interface';
 import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import Link from 'next/link';
 
 const featureCards = [
   { 
-    icon: DollarSign, 
-    title: 'Tax Calculator & Advisor', 
-    description: 'Compare Old vs. New tax regimes and get personalized advice.',
-    comingSoon: true,
-  },
-  { 
-    icon: ShieldCheck, 
+    icon: Shield, 
     title: 'AI Insurance Advisor', 
     description: 'Find the best insurance policies tailored to your profile.',
-    comingSoon: true,
-  },
-  { 
-    icon: TrendingUp, 
-    title: 'Personalized AI Reports', 
-    description: 'Generate financial reports with actionable investment strategies.',
-    comingSoon: true,
+    href: '/insurance'
   },
   { 
     icon: HandHelping, 
     title: 'RAG-Powered Tax Chatbot', 
     description: 'Ask complex tax questions and get accurate, context-aware answers.',
+    href: '/tax-chat'
+  },
+   { 
+    icon: Calculator, 
+    title: 'Tax Calculator & Advisor', 
+    description: 'Compare Old vs. New tax regimes and get personalized advice.',
+    href: '/calculator'
+  },
+  { 
+    icon: FileText, 
+    title: 'Document Intelligence', 
+    description: 'Upload financial documents for AI-powered analysis.',
+    href: '/documents'
   },
 ];
 
@@ -65,20 +67,19 @@ export default function DashboardPage() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {featureCards.map(feature => (
-                    <Card key={feature.title} className="relative">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">
-                                {feature.title}
-                            </CardTitle>
-                            <feature.icon className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-xs text-muted-foreground">{feature.description}</div>
-                            {feature.comingSoon && (
-                                <div className="absolute top-2 right-2 text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">Soon</div>
-                            )}
-                        </CardContent>
-                    </Card>
+                    <Link href={feature.href} key={feature.title}>
+                        <Card className="relative hover:shadow-md transition-shadow h-full">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                <CardTitle className="text-sm font-medium">
+                                    {feature.title}
+                                </CardTitle>
+                                <feature.icon className="h-4 w-4 text-muted-foreground" />
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-xs text-muted-foreground">{feature.description}</div>
+                            </CardContent>
+                        </Card>
+                    </Link>
                 ))}
             </div>
 

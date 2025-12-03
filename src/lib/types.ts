@@ -1,4 +1,6 @@
 
+import type { getAiResponse } from "@/app/actions";
+
 export type UserProfile = {
   user_id: string;
   name: string;
@@ -30,3 +32,5 @@ export type SeedKbDoc = {
   source_url: string;
   trust_score: number;
 };
+
+export type AiAction = typeof getAiResponse;

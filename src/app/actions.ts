@@ -7,6 +7,7 @@ import { retrieveRelevantFinancialDocuments } from '@/ai/flows/retrieve-relevant
 import { getTaxAdvice } from '@/ai/flows/tax-advisor';
 import type { UserProfile, SeedKbDoc } from '@/lib/types';
 import seedKb from '../../frontend/seed_data/seed_kb.json';
+import { chatWithFinancialAdvisor } from '@/ai/flows/chat-with-financial-advisor';
 
 const allDocs: SeedKbDoc[] = seedKb;
 
@@ -42,8 +43,7 @@ export async function createProfile(formData: unknown): Promise<{ success: boole
   return { success: true, data: profile };
 }
 
-export async function getAiResponse(question: string, profile: UserProfile) {
-  try {
+async function getContextualResponse(question: string, profile: UserProfile) {
     // 1. Compute deterministic facts based on user profile
     const recommended_insurance_cover = profile.annualIncome * 10;
     // Illustrative rule for premium estimation
@@ -72,6 +72,17 @@ export async function getAiResponse(question: string, profile: UserProfile) {
         };
       })
       .filter((doc): doc is SeedKbDoc & { similarity: number } => doc !== null);
+    
+    return {
+        computed_facts_json,
+        retrieved_documents: retrieved_documents_full
+    }
+}
+
+
+export async function getAiResponse(question: string, profile: UserProfile) {
+  try {
+    const { computed_facts_json, retrieved_documents } = await getContextualResponse(question, profile);
       
     // 4. Call the main AI flow with all context
     const response = await handleGroqApiFallback({
@@ -79,7 +90,7 @@ export async function getAiResponse(question: string, profile: UserProfile) {
       question,
       profile,
       computed_facts_json,
-      retrieved_documents: retrieved_documents_full,
+      retrieved_documents: retrieved_documents,
     });
 
     return { success: true, data: response };
@@ -90,6 +101,27 @@ export async function getAiResponse(question: string, profile: UserProfile) {
       success: false, 
       data: { 
         reply: "Sorry, I encountered an error while processing your request. Please try again later.",
+        confidence: 0,
+        sources: []
+      } 
+    };
+  }
+}
+
+export async function getInsuranceAdvice(question: string, profile: UserProfile) {
+  try {
+    const response = await chatWithFinancialAdvisor({
+        user_id: profile.user_id,
+        question: question
+    });
+    return { success: true, data: response };
+
+  } catch (error) {
+    console.error("Error in getInsuranceAdvice:", error);
+    return { 
+      success: false, 
+      data: { 
+        reply: "Sorry, I encountered an error while processing your insurance request. Please try again later.",
         confidence: 0,
         sources: []
       } 

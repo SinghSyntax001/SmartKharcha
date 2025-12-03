@@ -3,7 +3,7 @@
 
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { Send, Loader2, BarChart, ExternalLink, User, Bot, CircleUserRound, AlertCircle } from 'lucide-react';
-import type { UserProfile, ChatMessage } from '@/lib/types';
+import type { UserProfile, ChatMessage, AiAction } from '@/lib/types';
 import { getAiResponse } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,9 +19,10 @@ interface ChatInterfaceProps {
   userProfile: UserProfile | null;
   initialMessage: ChatMessage;
   onNewProfile: () => void;
+  aiAction?: AiAction;
 }
 
-export default function ChatInterface({ userProfile, initialMessage, onNewProfile }: ChatInterfaceProps) {
+export default function ChatInterface({ userProfile, initialMessage, onNewProfile, aiAction = getAiResponse }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -49,7 +50,7 @@ export default function ChatInterface({ userProfile, initialMessage, onNewProfil
 
     startTransition(async () => {
       if (!userProfile) return;
-      const result = await getAiResponse(input, userProfile);
+      const result = await aiAction(input, userProfile);
       
       const assistantMessage: ChatMessage = {
         id: `asst_${Date.now()}`,
