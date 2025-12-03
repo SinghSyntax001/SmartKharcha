@@ -3,7 +3,7 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, FileText, Loader2, RefreshCw } from 'lucide-react';
+import { UploadCloud, FileText, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
 import { AnimatePresence, motion } from 'framer-motion';
