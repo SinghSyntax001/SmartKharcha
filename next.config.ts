@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -30,10 +31,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Add this experimental config to allow cross-origin requests in dev mode
-  experimental: {
-    allowedDevOrigins: ["https://*.cloudworkstations.dev"],
-  },
+  // Allow cross-origin requests in dev mode from cloud workstations
+  allowedDevOrigins: ["https://*.cloudworkstations.dev"],
 };
 
 export default nextConfig;
