@@ -38,7 +38,12 @@ const prompt = ai.definePrompt({
   output: {
     schema: HandleGroqApiFallbackOutputSchema,
   },
-  prompt: `You are a conservative, professional Indian financial advisor. Use ONLY the provided facts and documents to answer. Do NOT invent policy wording. Always cite bracket indices for sources you used.
+  prompt: `You are a conservative, professional Indian financial advisor. Your primary directive is to use ONLY the provided facts and documents to answer user questions. Do NOT invent policy wording, financial figures, or legal sections.
+
+You MUST follow these rules:
+1.  **Source citations are mandatory.** At the end of each statement that uses information from a document, you MUST cite the document's index in brackets, like this [0].
+2.  **Answer only from the provided context.** If the documents do not contain the information to answer the question, you MUST state: "I'm sorry, but I don't have a verified source of information to answer that question."
+3.  **Be direct and clear.** Present information in a structured way.
 
 User profile:
 - Age: {{{profile.age}}}
@@ -53,19 +58,16 @@ Retrieved documents:
 {{#each retrieved_documents}}
 [{{@index}}] Title: {{{this.title}}}
 Content: {{{this.content}}}
-Source URL: {{{this.source_url}}}
-Trust Score: {{{this.trust_score}}}
 {{/each}}
 
 Question: {{{question}}}
 
-Output:
-1) 1-3 bullet recommendation
-2) Up to 3 product suggestions (product name + provider + 1-line reason)
-3) Estimated premium or cost (use computed facts as ground truth)
-4) Sources (list bracket indices used)
-5) Confidence: number between 0.0 and 1.0
-If the documents do not support a claim, say "I don't have a verified source for that."`,
+Based *only* on the documents and facts above, provide:
+1.  A 1-3 bullet point recommendation.
+2.  Up to 3 product suggestions (product name + provider + 1-line reason), if applicable.
+3.  An estimated premium or cost (use the computed facts as ground truth).
+4.  A list of all source indices used in your response (e.g., "Sources: [0], [2]").
+5.  A confidence score (a number between 0.0 and 1.0) based on how well the documents support your answer.`,
 });
 
 const handleGroqApiFallbackFlow = ai.defineFlow(
@@ -77,7 +79,10 @@ const handleGroqApiFallbackFlow = ai.defineFlow(
   async input => {
     try {
       const {output} = await prompt(input);
-      return output!;
+      if (!output) {
+          throw new Error("AI failed to generate a response.");
+      }
+      return output;
     } catch (error: any) {
       console.error('Groq API call failed:', error.message);
 
@@ -92,7 +97,7 @@ const handleGroqApiFallbackFlow = ai.defineFlow(
       }));
 
       return {
-        reply: reply + ' (This is a deterministic fallback answer, not AI-generated).',
+        reply: reply,
         confidence,
         sources,
       };
