@@ -24,7 +24,7 @@ export type AnalyzeDocumentInput = z.infer<typeof AnalyzeDocumentInputSchema>;
 
 const AnalyzeDocumentOutputSchema = z.object({
     documentType: z.string().describe("The type of document (e.g., 'Invoice', 'Salary Slip', 'Receipt')."),
-    extractedData: z.record(z.string(), z.any()).describe("A JSON object containing the extracted key-value pairs from the document."),
+    extractedData: z.any().describe("A JSON object containing the extracted key-value pairs from the document."),
     summary: z.string().describe("A brief one-sentence summary of the document's content."),
 });
 export type AnalyzeDocumentOutput = z.infer<typeof AnalyzeDocumentOutputSchema>;
@@ -41,13 +41,13 @@ const prompt = ai.definePrompt({
   output: { schema: AnalyzeDocumentOutputSchema },
   prompt: `You are an expert financial document analyst. Your task is to meticulously analyze the provided image of a document and extract structured information.
 
-Based on the image, identify the document type, extract all relevant key-value pairs, and provide a concise summary.
+Based on the image, identify the document type, extract all relevant key-value pairs into a valid JSON object, and provide a concise summary.
 
 - For an invoice or bill, extract fields like 'Invoice Number', 'Vendor Name', 'Total Amount', 'Due Date', and a list of line items.
 - For a salary slip, extract 'Employee Name', 'Gross Salary', 'Net Salary', 'Deductions', and a breakdown of earnings.
 - For a generic receipt, extract 'Store Name', 'Total Amount', 'Date', and items purchased.
 
-Return the information in the specified JSON format.
+Return the information in the specified JSON format, ensuring the extractedData field is a well-formed JSON object.
 
 Document Image:
 {{media url=documentImage}}
