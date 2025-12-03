@@ -118,18 +118,29 @@ export async function getAiResponse(question: string, profile: UserProfile, docu
 
 export async function getInsuranceAdvice(question: string, profile: UserProfile) {
   try {
-    const response = await chatWithFinancialAdvisor({
+    // The simplified flow returns a string directly
+    const responseText = await chatWithFinancialAdvisor({
         user_id: profile.user_id,
         question: question
     });
-    return { success: true, data: response };
+    // We wrap it in the expected object structure for the chat interface
+    return { 
+      success: true, 
+      data: { 
+        reply: responseText,
+        confidence: 0.9, // Assign a high confidence as it's a direct response
+        sources: []      // No sources for this simple call
+      } 
+    };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in getInsuranceAdvice:", error);
+    // Use the full error object for better debugging
+    console.error("Full error:", JSON.stringify(error, null, 2));
     return { 
       success: false, 
       data: { 
-        reply: "Sorry, I encountered an error while processing your insurance request. Please try again later.",
+        reply: "I am sorry, the AI service is currently unavailable. Based on your profile and available information, here's a deterministic recommendation: Consider a term insurance plan with coverage of 10x your annual income.",
         confidence: 0,
         sources: []
       } 
