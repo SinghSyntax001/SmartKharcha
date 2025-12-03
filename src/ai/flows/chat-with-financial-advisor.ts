@@ -1,19 +1,11 @@
-
 'use server';
 
-/**
- * @fileOverview Implements the chat flow for the SmartKharcha AI advisor, providing personalized financial advice.
- *
- * - chatWithFinancialAdvisor - A function that handles the chat flow.
- * - ChatInput - The input type for the chatWithFinancialAdvisor function.
- * - ChatOutput - The return type for the chatWithFinancialAdvisor function.
- */
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
+import Groq from 'groq-sdk';
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-import type { UserProfile } from '@/lib/types';
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Define schemas for input and output
 const ChatInputSchema = z.object({
   question: z.string().describe("The user's question about financial planning."),
   profile: z.any().describe("The user's profile data."),
@@ -22,6 +14,12 @@ const ChatInputSchema = z.object({
   documentContext: z.string().optional().describe("Optional context from a user-uploaded document."),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
+
+const AiOutputSchema = z.object({
+    reply: z.string(),
+    confidence: z.number(),
+    source_indices: z.array(z.number()),
+});
 
 const ChatOutputSchema = z.object({
   reply: z.string().describe("The AI chatbot's response to the user's question."),
@@ -37,20 +35,21 @@ const ChatOutputSchema = z.object({
 });
 export type ChatOutput = z.infer<typeof ChatOutputSchema>;
 
-// Define the chatWithFinancialAdvisor function
 export async function chatWithFinancialAdvisor(input: ChatInput): Promise<ChatOutput> {
   return chatWithFinancialAdvisorFlow(input);
 }
 
-const prompt = ai.definePrompt({
-    name: 'financialAdvisorPrompt',
-    input: { schema: ChatInputSchema },
-    output: { schema: z.object({
-        reply: z.string(),
-        confidence: z.number(),
-        source_indices: z.array(z.number()),
-    })},
-    prompt: `You are a conservative, professional Indian financial advisor. Your primary directive is to use ONLY the provided facts and documents to answer user questions. Do NOT invent policy wording, financial figures, or legal sections.
+const chatWithFinancialAdvisorFlow = ai.defineFlow(
+  {
+    name: 'chatWithFinancialAdvisorFlow',
+    inputSchema: ChatInputSchema,
+    outputSchema: ChatOutputSchema,
+  },
+  async (input) => {
+    
+    const documentsContext = input.retrieved_documents.map((doc, index) => `[${index}] Title: ${doc.title}\nContent: ${doc.content}`).join('\n\n');
+
+    const systemPrompt = `You are a conservative, professional Indian financial advisor. Your primary directive is to use ONLY the provided facts and documents to answer user questions. Do NOT invent policy wording, financial figures, or legal sections.
 
 You MUST follow these rules:
 1.  **Source citations are mandatory.** At the end of each statement that uses information from a document, you MUST cite the document's index in brackets, like this [0].
@@ -59,55 +58,48 @@ You MUST follow these rules:
 4.  **If document data is present in the computed facts (from a user upload), prioritize it.**
 
 User profile:
-- Age: {{{profile.age}}}
-- Annual income: {{{profile.annualIncome}}}
-- Dependents: {{{profile.dependents}}}
-- Goal: {{{profile.goal}}}
+- Age: ${input.profile.age}
+- Annual income: ${input.profile.annualIncome}
+- Dependents: ${input.profile.dependents}
+- Goal: ${input.profile.goal}
 
 Computed facts (including any data extracted from documents):
-{{{computed_facts_json}}}
+${input.computed_facts_json}
 
 Retrieved documents from knowledge base:
-{{#each retrieved_documents}}
-[{{@index}}] Title: {{{this.title}}}
-Content: {{{this.content}}}
-{{/each}}
-
-Question: {{{question}}}
+${documentsContext}
 
 Based *only* on the documents and facts above, provide:
 1. A detailed, multi-paragraph response answering the user's question with citations.
 2. A confidence score (a number between 0.0 and 1.0) based on how well the documents support your answer.
 3. A list of all source indices used in your response (e.g., [0, 2]).
-`,
-});
+`;
 
+    const completion = await groq.chat.completions.create({
+        model: "llama-3.1-8b-instant",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Question: ${input.question}` }
+        ],
+        response_format: { type: 'json_object' },
+    });
 
-// Define the Genkit flow
-const chatWithFinancialAdvisorFlow = ai.defineFlow(
-  {
-    name: 'chatWithFinancialAdvisorFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
-  },
-  async (input) => {
-    const { output } = await prompt(input);
-
-    if (!output) {
-        throw new Error("AI failed to generate a valid response.");
+    const rawOutput = completion.choices[0]?.message?.content;
+    if (!rawOutput) {
+        throw new Error("AI failed to generate a response.");
     }
     
-    // Map the source indices from the AI response back to the full source objects
+    const output = AiOutputSchema.parse(JSON.parse(rawOutput));
+
     const sources = output.source_indices
         .map(index => input.retrieved_documents[index])
-        .filter(Boolean) // Filter out any invalid indices
+        .filter(Boolean)
         .map(doc => ({
             doc_id: doc.doc_id,
             title: doc.title,
             url: doc.source_url,
             similarity: doc.similarity,
         }));
-
 
     return {
         reply: output.reply,
