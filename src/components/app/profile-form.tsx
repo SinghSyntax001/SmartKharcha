@@ -54,7 +54,6 @@ export default function ProfileForm({ onProfileCreated }: ProfileFormProps) {
           description: 'You can now start chatting with the AI advisor.',
         });
       } else {
-        // Handle server-side validation errors if any
         console.error(result.data);
         toast({
           variant: "destructive",
@@ -66,7 +65,7 @@ export default function ProfileForm({ onProfileCreated }: ProfileFormProps) {
   };
 
   return (
-    <Card className="w-full shadow-lg">
+    <Card className="w-full shadow-none border-none">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Create Your Profile</CardTitle>
         <CardDescription>Tell us a bit about yourself for personalized advice.</CardDescription>
@@ -153,7 +152,7 @@ export default function ProfileForm({ onProfileCreated }: ProfileFormProps) {
             />
             <Button type="submit" className="w-full bg-accent hover:bg-accent/90" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Start Advising
+              Save Profile & Start
             </Button>
           </form>
         </Form>
