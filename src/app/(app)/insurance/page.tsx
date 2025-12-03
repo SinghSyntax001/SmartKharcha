@@ -8,12 +8,10 @@ import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getInsuranceAdvice } from '@/app/actions';
-import { useUser } from '@/firebase';
 
 export default function InsurancePage() {
     const [profile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
-    const { user } = useUser();
 
     const handleProfileCreated = () => {
         setIsProfileFormOpen(false);
@@ -32,7 +30,6 @@ export default function InsurancePage() {
             <div className="flex-grow">
                  <ChatInterface 
                     userProfile={profile}
-                    user={user}
                     onNewProfile={handleNewProfile}
                     aiAction={getInsuranceAdvice}
                     initialMessage={{

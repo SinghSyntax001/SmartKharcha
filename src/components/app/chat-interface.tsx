@@ -4,7 +4,7 @@
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { Send, Loader2, BarChart, ExternalLink, User as UserIcon, Bot, CircleUserRound, AlertCircle } from 'lucide-react';
 import type { UserProfile, ChatMessage, AiAction } from '@/lib/types';
-import { getAiResponse, saveChatMessage, getChatHistory } from '@/app/actions';
+import { getAiResponse } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,18 +14,16 @@ import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AnimatePresence, motion } from 'framer-motion';
-import type { User } from 'firebase/auth';
 
 interface ChatInterfaceProps {
   userProfile: UserProfile | null;
-  user: User | null;
   initialMessage: ChatMessage;
   onNewProfile: () => void;
   aiAction?: AiAction;
   documentContext?: string;
 }
 
-export default function ChatInterface({ userProfile, user, initialMessage, onNewProfile, aiAction = getAiResponse, documentContext }: ChatInterfaceProps) {
+export default function ChatInterface({ userProfile, initialMessage, onNewProfile, aiAction = getAiResponse, documentContext }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -38,26 +36,11 @@ export default function ChatInterface({ userProfile, user, initialMessage, onNew
     }
   }, [messages]);
 
-  useEffect(() => {
-    // Load chat history when user logs in
-    if (user) {
-      startTransition(async () => {
-        const historyResult = await getChatHistory(user.uid);
-        if (historyResult.success && historyResult.data.length > 0) {
-          setMessages([initialMessage, ...historyResult.data]);
-        }
-      });
-    } else {
-      // Reset to initial message when user logs out
-      setMessages([initialMessage]);
-    }
-  }, [user, initialMessage]);
-  
-  const isChatDisabled = !userProfile || !user;
+  const isChatDisabled = !userProfile;
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim() || isPending || !user || !userProfile) return;
+    if (!input.trim() || isPending || !userProfile) return;
 
     const userMessage: ChatMessage = {
       id: `user_${Date.now()}`,
@@ -66,7 +49,6 @@ export default function ChatInterface({ userProfile, user, initialMessage, onNew
     };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
-    saveChatMessage(user.uid, userMessage);
 
 
     startTransition(async () => {
@@ -85,7 +67,6 @@ export default function ChatInterface({ userProfile, user, initialMessage, onNew
         confidence: result.data.confidence,
       };
       setMessages(prev => [...prev, assistantMessage]);
-      saveChatMessage(user.uid, assistantMessage);
     });
   };
 
@@ -180,35 +161,24 @@ export default function ChatInterface({ userProfile, user, initialMessage, onNew
       <div className="p-4 border-t relative">
         {isChatDisabled && (
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 text-center p-4">
-                 {!user && (
-                     <Alert className="max-w-md shadow-lg">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Please Log In</AlertTitle>
-                        <AlertDescription>
-                            You need to be logged in to chat and save your history.
-                        </AlertDescription>
-                    </Alert>
-                 )}
-                 {user && !userProfile && (
-                     <Alert className="max-w-md shadow-lg">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Create a Profile to Start</AlertTitle>
-                        <AlertDescription>
-                            Your financial data helps us provide personalized advice.
-                        </AlertDescription>
-                        <Button size="sm" className="mt-4" onClick={onNewProfile}>
-                            <CircleUserRound className="mr-2" />
-                            Create Profile
-                        </Button>
-                    </Alert>
-                 )}
+                 <Alert className="max-w-md shadow-lg">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Create a Profile to Start</AlertTitle>
+                    <AlertDescription>
+                        Your financial data helps us provide personalized advice.
+                    </AlertDescription>
+                    <Button size="sm" className="mt-4" onClick={onNewProfile}>
+                        <CircleUserRound className="mr-2" />
+                        Create Profile
+                    </Button>
+                </Alert>
             </div>
         )}
         <form onSubmit={handleSubmit} className="w-full flex items-center gap-2">
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={isChatDisabled ? "Please log in and create a profile to chat." : "Ask a financial question..."}
+            placeholder={isChatDisabled ? "Create a profile to start chatting." : "Ask a financial question..."}
             className="flex-grow resize-none"
             rows={1}
             onKeyDown={(e) => {

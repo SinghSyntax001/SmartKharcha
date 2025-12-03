@@ -3,22 +3,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bot, Calculator, FileText, Home, CircleUserRound, Shield, LogIn, LogOut } from 'lucide-react';
+import { Bot, Calculator, FileText, Home, CircleUserRound, Shield } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import Logo from '@/components/app/logo';
 import type { UserProfile } from '@/lib/types';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import type { User } from 'firebase/auth';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 
 
 interface SidebarProps {
     userProfile: UserProfile | null;
     onNewProfile: () => void;
-    user: User | null;
-    onLogin: () => void;
-    onLogout: () => void;
 }
 
 const navItems = [
@@ -29,7 +25,7 @@ const navItems = [
     { href: '/calculator', icon: Calculator, label: 'Tax Calculator' },
 ];
 
-export default function AppSidebar({ userProfile, onNewProfile, user, onLogin, onLogout }: SidebarProps) {
+export default function AppSidebar({ userProfile, onNewProfile }: SidebarProps) {
     const pathname = usePathname();
 
     return (
@@ -67,59 +63,26 @@ export default function AppSidebar({ userProfile, onNewProfile, user, onLogin, o
             
             <div className="p-4 border-t">
                  <TooltipProvider delayDuration={0}>
-                    {user ? (
-                        <div className='flex flex-col gap-2'>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" className="w-full justify-start" onClick={onNewProfile}>
-                                        {user.photoURL ? (
-                                            <Avatar className="w-8 h-8 mr-3 border">
-                                                <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />
-                                                <AvatarFallback>{user.displayName?.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        ) : userProfile ? (
-                                            <Avatar className="w-8 h-8 mr-3 border">
-                                                <AvatarFallback className="bg-secondary text-secondary-foreground">{userProfile.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        ): (
-                                            <CircleUserRound className="mr-3 h-5 w-5" />
-                                        )}
-                                        <div className="flex flex-col items-start">
-                                            <span className="font-semibold">{user.displayName || userProfile?.name}</span>
-                                            <span className="text-xs text-muted-foreground">Edit Profile</span>
-                                        </div>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" align="center">
-                                    <p>{userProfile ? 'Switch or edit profile' : 'Create a new user profile'}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                     <Button variant="ghost" className="w-full justify-start" onClick={onLogout}>
-                                        <LogOut className="mr-3 h-5 w-5" />
-                                        <span>Logout</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right" align="center">
-                                    <p>Sign out of your account</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-
-                    ) : (
-                         <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="default" className="w-full justify-start" onClick={onLogin}>
-                                    <LogIn className="mr-3 h-5 w-5" />
-                                    <span>Login with Google</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent side="right" align="center">
-                                <p>Sign in to save your history</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    )}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" className="w-full justify-start" onClick={onNewProfile}>
+                                {userProfile ? (
+                                    <Avatar className="w-8 h-8 mr-3 border">
+                                        <AvatarFallback className="bg-secondary text-secondary-foreground">{userProfile.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                ): (
+                                    <CircleUserRound className="mr-3 h-5 w-5" />
+                                )}
+                                <div className="flex flex-col items-start">
+                                    <span className="font-semibold">{userProfile ? userProfile.name : 'Create Profile'}</span>
+                                    {userProfile && <span className="text-xs text-muted-foreground">Switch Profile</span>}
+                                </div>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right" align="center">
+                            <p>{userProfile ? 'Switch or edit profile' : 'Create a new user profile'}</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </TooltipProvider>
             </div>
         </aside>

@@ -13,7 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import ChatInterface from '@/components/app/chat-interface';
 import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import { UserProfile } from '@/lib/types';
-import { useUser } from '@/firebase';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import ProfileForm from '@/components/app/profile-form';
 
 export default function DocumentsPage() {
     const [isAnalyzing, startTransition] = useTransition();
@@ -21,9 +22,12 @@ export default function DocumentsPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalyzeDocumentOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [profile] = useLocalStorage<UserProfile | null>('user-profile', null);
-    const { user } = useUser();
+    const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
+
+    const handleProfileCreated = () => {
+        setIsProfileFormOpen(false);
+    };
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
@@ -157,7 +161,6 @@ export default function DocumentsPage() {
                                 ) : analysisResult ? (
                                     <ChatInterface 
                                         userProfile={profile}
-                                        user={user}
                                         onNewProfile={() => setIsProfileFormOpen(true)}
                                         initialMessage={{
                                             id: 'init-doc',
@@ -174,6 +177,14 @@ export default function DocumentsPage() {
                     </AnimatePresence>
                  </div>
             </div>
+             <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
+              <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Create Profile</DialogTitle>
+                  </DialogHeader>
+                  <ProfileForm onProfileCreated={handleProfileCreated} />
+              </DialogContent>
+          </Dialog>
         </div>
     );
 }

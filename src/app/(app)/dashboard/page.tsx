@@ -10,7 +10,6 @@ import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import Link from 'next/link';
-import { useUser } from '@/firebase';
 
 const featureCards = [
   { 
@@ -43,7 +42,6 @@ const featureCards = [
 export default function DashboardPage() {
     const [profile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
-    const { user } = useUser();
 
     const handleProfileCreated = () => {
         // This will be handled by the layout now
@@ -54,8 +52,8 @@ export default function DashboardPage() {
         setIsProfileFormOpen(true);
     };
 
-    const welcomeMessage = user?.displayName ? `Welcome back, ${user.displayName.split(' ')[0]}!` : "Welcome to SmartKharcha AI!";
-    const welcomeDescription = user ? "Here's a quick overview of your financial toolkit." : "Log in and create a profile to get started with personalized financial advice.";
+    const welcomeMessage = profile ? `Welcome back, ${profile.name.split(' ')[0]}!` : "Welcome to SmartKharcha AI!";
+    const welcomeDescription = profile ? "Here's a quick overview of your financial toolkit." : "Create a profile to get started with personalized financial advice.";
 
 
     return (
@@ -88,7 +86,6 @@ export default function DashboardPage() {
             <Card className="h-[calc(100vh-270px)]">
                  <ChatInterface 
                     userProfile={profile}
-                    user={user}
                     onNewProfile={handleNewProfile}
                     initialMessage={{
                         id: 'init-dash',
@@ -101,7 +98,7 @@ export default function DashboardPage() {
             <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
               <DialogContent className="max-w-2xl">
                   <DialogHeader>
-                    <DialogTitle>Create Profile</DialogTitle>
+                    <DialogTitle>Create or Edit Profile</DialogTitle>
                   </DialogHeader>
                   <ProfileForm onProfileCreated={handleProfileCreated} />
               </DialogContent>

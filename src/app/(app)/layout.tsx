@@ -8,7 +8,6 @@ import AppSidebar from '@/components/app/sidebar';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useUser, FirebaseProvider, initializeFirebase, FirebaseClientProvider } from '@/firebase';
 
 export default function AppLayout({
   children,
@@ -17,59 +16,44 @@ export default function AppLayout({
 }) {
   const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // The profile is loaded from localStorage on the client, so we can stop loading.
     setLoading(false);
-  }, []);
+    if (!profile) {
+      setShowOnboarding(true);
+      setIsProfileFormOpen(true);
+    }
+  }, [profile]);
 
   const handleProfileCreated = (newProfile: UserProfile) => {
     setProfile(newProfile);
     setIsProfileFormOpen(false);
+    setShowOnboarding(false);
   };
   
   const handleNewProfile = () => {
     setIsProfileFormOpen(true);
   };
 
-  const handleLogin = () => {
-    // Mock login function
-    console.log("Login initiated");
-  };
-
-  const handleLogout = () => {
-    // Mock logout function
-    console.log("Logout initiated");
-  };
-
-  const { user } = useUser();
-
-
   const LayoutComponent = (
-     <FirebaseClientProvider>
-        <div className="flex h-screen bg-background">
-            <AppSidebar 
-              userProfile={profile} 
-              onNewProfile={handleNewProfile}
-              user={user} 
-              onLogin={handleLogin} 
-              onLogout={handleLogout} 
-            />
-            <main className="flex-1 flex flex-col h-screen">
-                {children}
-            </main>
-            
-            <Dialog open={isProfileFormOpen} onOpenChange={setIsProfileFormOpen}>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle>Create or Edit Profile</DialogTitle>
-                    </DialogHeader>
-                    <ProfileForm onProfileCreated={handleProfileCreated} />
-                </DialogContent>
-            </Dialog>
-        </div>
-      </FirebaseClientProvider>
+    <div className="flex h-screen bg-background">
+        <AppSidebar userProfile={profile} onNewProfile={handleNewProfile} />
+        <main className="flex-1 flex flex-col h-screen">
+            {children}
+        </main>
+        
+        <Dialog open={isProfileFormOpen} onOpenChange={setShowOnboarding ? setIsProfileFormOpen : undefined}>
+            <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Create Your Profile</DialogTitle>
+                </DialogHeader>
+                <ProfileForm onProfileCreated={handleProfileCreated} />
+            </DialogContent>
+        </Dialog>
+    </div>
   );
 
   const LoaderComponent = (
@@ -85,7 +69,7 @@ export default function AppLayout({
   return (
     <AnimatePresence mode="wait">
         <motion.div
-            key={profile ? "app" : "app"} // Use same key to avoid re-animation on profile change
+            key={profile ? "app" : "onboarding"}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -7,12 +7,10 @@ import ChatInterface from '@/components/app/chat-interface';
 import { useState } from 'react';
 import ProfileForm from '@/components/app/profile-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useUser } from '@/firebase';
 
 export default function TaxChatPage() {
     const [profile] = useLocalStorage<UserProfile | null>('user-profile', null);
     const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
-    const { user } = useUser();
 
     const handleProfileCreated = () => {
         setIsProfileFormOpen(false);
@@ -31,7 +29,6 @@ export default function TaxChatPage() {
             <div className="flex-grow">
                  <ChatInterface 
                     userProfile={profile}
-                    user={user}
                     onNewProfile={handleNewProfile}
                     initialMessage={{
                         id: 'init-tax',
