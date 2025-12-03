@@ -10,6 +10,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { analyzeDocument as analyzeDocumentAction } from '@/app/actions';
 import type { AnalyzeDocumentOutput } from '@/ai/flows/analyze-document';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import ChatInterface from '@/components/app/chat-interface';
+import { useLocalStorage } from '@/lib/hooks/use-local-storage';
+import { UserProfile } from '@/lib/types';
+import { useUser } from '@/firebase';
 
 export default function DocumentsPage() {
     const [isAnalyzing, startTransition] = useTransition();
@@ -17,6 +21,9 @@ export default function DocumentsPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [analysisResult, setAnalysisResult] = useState<AnalyzeDocumentOutput | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [profile] = useLocalStorage<UserProfile | null>('user-profile', null);
+    const { user } = useUser();
+    const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
@@ -81,7 +88,7 @@ export default function DocumentsPage() {
         <div className="flex flex-col h-screen">
             <header className="p-4 border-b">
                  <h2 className="text-2xl font-bold tracking-tight">Document Intelligence</h2>
-                 <p className="text-muted-foreground">Upload your financial documents for AI-powered analysis.</p>
+                 <p className="text-muted-foreground">Upload your financial documents for AI-powered analysis and chat.</p>
             </header>
             <div className="flex-grow p-4 md:p-8 overflow-auto">
                  <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
@@ -132,36 +139,33 @@ export default function DocumentsPage() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
+                            className="h-[calc(100vh-270px)]"
                         >
-                        <Card>
+                        <Card className="h-full">
                             <CardHeader>
-                                <CardTitle>Analysis Results</CardTitle>
-                                <CardDescription>Structured data extracted from your document by AI.</CardDescription>
+                                <CardTitle>Analysis & Chat</CardTitle>
+                                <CardDescription>Review the extracted data and ask questions below.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4 font-mono text-sm max-h-[400px] overflow-y-auto">
+                            <CardContent className="h-[calc(100%-78px)]">
                                 {isAnalyzing ? (
                                     <div className="space-y-4">
                                         <div className="flex items-center space-x-2">
                                             <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                             <p className="text-muted-foreground">AI is analyzing the document...</p>
                                         </div>
-                                        <div className="space-y-2">
-                                            <div className="h-4 bg-muted rounded-full w-1/3 animate-pulse"></div>
-                                            <div className="h-4 bg-muted rounded-full w-2/3 animate-pulse"></div>
-                                            <div className="h-4 bg-muted rounded-full w-1/2 animate-pulse"></div>
-                                        </div>
                                     </div>
                                 ) : analysisResult ? (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <p><span className="font-bold text-primary">Document Type:</span> {analysisResult.documentType}</p>
-                                            <p><span className="font-bold text-primary">Summary:</span> {analysisResult.summary}</p>
-                                        </div>
-                                        <div className="pt-4 border-t">
-                                            <h4 className="font-bold mb-2 text-primary">Extracted Data:</h4>
-                                            {renderJson(analysisResult.extractedData)}
-                                        </div>
-                                    </div>
+                                    <ChatInterface 
+                                        userProfile={profile}
+                                        user={user}
+                                        onNewProfile={() => setIsProfileFormOpen(true)}
+                                        initialMessage={{
+                                            id: 'init-doc',
+                                            role: 'assistant',
+                                            content: `I've analyzed your document, which appears to be a **${analysisResult.documentType}**. ${analysisResult.summary} \n\nI have the full extracted details. What would you like to know about it?`
+                                        }}
+                                        documentContext={JSON.stringify(analysisResult.extractedData)}
+                                    />
                                 ) : null}
                             </CardContent>
                         </Card>

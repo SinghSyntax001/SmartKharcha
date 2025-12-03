@@ -22,9 +22,10 @@ interface ChatInterfaceProps {
   initialMessage: ChatMessage;
   onNewProfile: () => void;
   aiAction?: AiAction;
+  documentContext?: string;
 }
 
-export default function ChatInterface({ userProfile, user, initialMessage, onNewProfile, aiAction = getAiResponse }: ChatInterfaceProps) {
+export default function ChatInterface({ userProfile, user, initialMessage, onNewProfile, aiAction = getAiResponse, documentContext }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
@@ -69,7 +70,12 @@ export default function ChatInterface({ userProfile, user, initialMessage, onNew
 
 
     startTransition(async () => {
-      const result = await aiAction(input, userProfile);
+      // We need to pass the document context to the action if it exists
+      const actionToCall = documentContext 
+          ? (q: string, p: UserProfile) => getAiResponse(q, p, documentContext) 
+          : aiAction;
+
+      const result = await actionToCall(input, userProfile);
       
       const assistantMessage: ChatMessage = {
         id: `asst_${Date.now()}`,

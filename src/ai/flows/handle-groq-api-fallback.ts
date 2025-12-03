@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow that handles fallback behavior when the Groq API is unavailable.
@@ -14,7 +15,7 @@ const HandleGroqApiFallbackInputSchema = z.object({
   user_id: z.string().describe('The ID of the user.'),
   question: z.string().describe('The user question.'),
   profile: z.any().describe('The user profile data.'),
-  computed_facts_json: z.string().describe('Computed financial facts as JSON.'),
+  computed_facts_json: z.string().describe('Computed financial facts as JSON, may include document context.'),
   retrieved_documents: z.array(z.any()).describe('Retrieved documents from the knowledge base.'),
 });
 export type HandleGroqApiFallbackInput = z.infer<typeof HandleGroqApiFallbackInputSchema>;
@@ -42,8 +43,9 @@ const prompt = ai.definePrompt({
 
 You MUST follow these rules:
 1.  **Source citations are mandatory.** At the end of each statement that uses information from a document, you MUST cite the document's index in brackets, like this [0].
-2.  **Answer only from the provided context.** If the documents do not contain the information to answer the question, you MUST state: "I'm sorry, but I don't have a verified source of information to answer that question."
+2.  **Answer only from the provided context.** If the documents or computed facts do not contain the information to answer the question, you MUST state: "I'm sorry, but I don't have a verified source of information to answer that question."
 3.  **Be direct and clear.** Present information in a structured way.
+4.  **If document data is present in the computed facts, prioritize it.**
 
 User profile:
 - Age: {{{profile.age}}}
@@ -51,10 +53,10 @@ User profile:
 - Dependents: {{{profile.dependents}}}
 - Goal: {{{profile.goal}}}
 
-Computed facts:
+Computed facts (including any data extracted from documents):
 {{{computed_facts_json}}}
 
-Retrieved documents:
+Retrieved documents from knowledge base:
 {{#each retrieved_documents}}
 [{{@index}}] Title: {{{this.title}}}
 Content: {{{this.content}}}

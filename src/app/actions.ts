@@ -45,15 +45,22 @@ export async function createProfile(formData: unknown): Promise<{ success: boole
   return { success: true, data: profile };
 }
 
-async function getContextualResponse(question: string, profile: UserProfile) {
+async function getContextualResponse(question: string, profile: UserProfile, documentContext?: string) {
     // 1. Compute deterministic facts based on user profile
     const recommended_insurance_cover = profile.annualIncome * 10;
     // Illustrative rule for premium estimation
     const premium_estimate = Math.round((recommended_insurance_cover / 1000) * (profile.age / 10) + (profile.dependents * 200));
-    const computed_facts_json = JSON.stringify({
+    
+    let computed_facts: Record<string, any> = {
       "Recommended Term Insurance Cover (₹)": recommended_insurance_cover.toLocaleString('en-IN'),
       "Illustrative Annual Premium (₹)": premium_estimate.toLocaleString('en-IN'),
-    });
+    };
+
+    if (documentContext) {
+      computed_facts["Extracted Document Data"] = JSON.parse(documentContext);
+    }
+    const computed_facts_json = JSON.stringify(computed_facts);
+
 
     // 2. Retrieve relevant document headers from the knowledge base
     const relevantDocHeaders = await retrieveRelevantFinancialDocuments({
@@ -82,9 +89,9 @@ async function getContextualResponse(question: string, profile: UserProfile) {
 }
 
 
-export async function getAiResponse(question: string, profile: UserProfile) {
+export async function getAiResponse(question: string, profile: UserProfile, documentContext?: string) {
   try {
-    const { computed_facts_json, retrieved_documents } = await getContextualResponse(question, profile);
+    const { computed_facts_json, retrieved_documents } = await getContextualResponse(question, profile, documentContext);
       
     // 4. Call the main AI flow with all context
     const response = await handleGroqApiFallback({
