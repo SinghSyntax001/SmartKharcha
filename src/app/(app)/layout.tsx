@@ -1,7 +1,7 @@
 
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import type { UserProfile } from '@/lib/types';
 import AppSidebar from '@/components/app/sidebar';
@@ -16,6 +16,13 @@ export default function AppLayout({
 }) {
   const [profile, setProfile] = useLocalStorage<UserProfile | null>('user-profile', null);
   const [isProfileFormOpen, setIsProfileFormOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // The profile is loaded from localStorage on the client, so we can stop loading.
+    setLoading(false);
+  }, []);
+
 
   const handleProfileCreated = (newProfile: UserProfile) => {
     setProfile(newProfile);
@@ -47,16 +54,20 @@ export default function AppLayout({
       </div>
   )
 
+  if (loading) {
+      return LoaderComponent;
+  }
+
   return (
     <AnimatePresence mode="wait">
         <motion.div
-            key={profile ? "app" : "loader"}
+            key={profile ? "app" : "app"} // Use same key to avoid re-animation on profile change
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
         >
-            { true ? LayoutComponent : LoaderComponent }
+            { LayoutComponent }
         </motion.div>
     </AnimatePresence>
   );
