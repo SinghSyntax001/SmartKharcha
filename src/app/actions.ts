@@ -2,7 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import { handleGroqApiFallback } from '@/ai/flows/handle-groq-api-fallback';
+import { handleApiFallback } from '@/ai/flows/handle-api-fallback';
 import { retrieveRelevantFinancialDocuments } from '@/ai/flows/retrieve-relevant-financial-documents';
 import { getTaxAdvice } from '@/ai/flows/tax-advisor';
 import type { UserProfile, SeedKbDoc } from '@/lib/types';
@@ -93,7 +93,7 @@ export async function getAiResponse(question: string, profile: UserProfile, docu
     const { computed_facts_json, retrieved_documents } = await getContextualResponse(question, profile, documentContext);
       
     // 4. Call the main AI flow with all context
-    const response = await handleGroqApiFallback({
+    const response = await handleApiFallback({
       user_id: profile.user_id,
       question,
       profile,

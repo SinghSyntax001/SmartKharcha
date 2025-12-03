@@ -1,43 +1,43 @@
 
 'use server';
 /**
- * @fileOverview This file implements a Genkit flow that handles fallback behavior when the Groq API is unavailable.
+ * @fileOverview This file implements a Genkit flow that handles fallback behavior when the primary AI API is unavailable.
  *
- * - handleGroqApiFallback - A function that attempts to get financial advice from Groq, but falls back to deterministic rules if the Groq API fails.
- * - HandleGroqApiFallbackInput - The input type for the handleGroqApiFallback function.
- * - HandleGroqApiFallbackOutput - The return type for the handleGroqApiFallback function.
+ * - handleApiFallback - A function that attempts to get financial advice, but falls back to deterministic rules if the API fails.
+ * - HandleApiFallbackInput - The input type for the handleApiFallback function.
+ * - HandleApiFallbackOutput - The return type for the handleApiFallback function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
-const HandleGroqApiFallbackInputSchema = z.object({
+const HandleApiFallbackInputSchema = z.object({
   user_id: z.string().describe('The ID of the user.'),
   question: z.string().describe('The user question.'),
   profile: z.any().describe('The user profile data.'),
   computed_facts_json: z.string().describe('Computed financial facts as JSON, may include document context.'),
   retrieved_documents: z.array(z.any()).describe('Retrieved documents from the knowledge base.'),
 });
-export type HandleGroqApiFallbackInput = z.infer<typeof HandleGroqApiFallbackInputSchema>;
+export type HandleApiFallbackInput = z.infer<typeof HandleApiFallbackInputSchema>;
 
-const HandleGroqApiFallbackOutputSchema = z.object({
+const HandleApiFallbackOutputSchema = z.object({
   reply: z.string().describe('The financial advice reply.'),
   confidence: z.number().describe('Confidence score of the advice.'),
   sources: z.array(z.any()).describe('Sources used to generate the advice.'),
 });
-export type HandleGroqApiFallbackOutput = z.infer<typeof HandleGroqApiFallbackOutputSchema>;
+export type HandleApiFallbackOutput = z.infer<typeof HandleApiFallbackOutputSchema>;
 
-export async function handleGroqApiFallback(input: HandleGroqApiFallbackInput): Promise<HandleGroqApiFallbackOutput> {
-  return handleGroqApiFallbackFlow(input);
+export async function handleApiFallback(input: HandleApiFallbackInput): Promise<HandleApiFallbackOutput> {
+  return handleApiFallbackFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'groqApiFallbackPrompt',
+  name: 'apiFallbackPrompt',
   input: {
-    schema: HandleGroqApiFallbackInputSchema,
+    schema: HandleApiFallbackInputSchema,
   },
   output: {
-    schema: HandleGroqApiFallbackOutputSchema,
+    schema: HandleApiFallbackOutputSchema,
   },
   prompt: `You are a conservative, professional Indian financial advisor. Your primary directive is to use ONLY the provided facts and documents to answer user questions. Do NOT invent policy wording, financial figures, or legal sections.
 
@@ -72,11 +72,11 @@ Based *only* on the documents and facts above, provide:
 5.  A confidence score (a number between 0.0 and 1.0) based on how well the documents support your answer.`,
 });
 
-const handleGroqApiFallbackFlow = ai.defineFlow(
+const handleApiFallbackFlow = ai.defineFlow(
   {
-    name: 'handleGroqApiFallbackFlow',
-    inputSchema: HandleGroqApiFallbackInputSchema,
-    outputSchema: HandleGroqApiFallbackOutputSchema,
+    name: 'handleApiFallbackFlow',
+    inputSchema: HandleApiFallbackInputSchema,
+    outputSchema: HandleApiFallbackOutputSchema,
   },
   async input => {
     try {
